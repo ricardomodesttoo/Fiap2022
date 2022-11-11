@@ -1,0 +1,132 @@
+// C++ code
+//
+#include <LiquidCrystal.h>
+#include <ArduinoJson.h> 
+
+LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
+
+const int TAMANHO = 50;
+
+//Sensor1
+const int TRIG1 = 10;
+const int ECHO1 = 9;
+
+//Sensor2
+const int TRIG2 = 11;
+const int ECHO2 = 12;
+
+void setup()
+{
+  Serial.begin(9600);
+  
+  //LEDs Va1
+  //pinMode(0, OUTPUT); //verde
+  //pinMode(1, OUTPUT); //vermelho
+  
+  //LEDS Va2
+  pinMode(13, OUTPUT); //vermelho
+  pinMode(8, OUTPUT);  //verde
+  
+  //Sesor1
+  pinMode(TRIG1,OUTPUT);
+  pinMode(ECHO1,INPUT);
+  
+  //Sesor2
+  pinMode(TRIG2,OUTPUT);
+  pinMode(ECHO2,INPUT);
+  
+  //pinMode(LED_BUILTIN, OUTPUT);
+  lcd.begin(16, 2);
+  lcd.setCursor(0,0);
+  lcd.print("Vagas Livres   0");
+  lcd.setCursor(0,1);
+  lcd.print("Vagas Ocupadas 0");
+ 
+}
+
+void loop()
+{  
+  //Não dá pra usar JSon no tinkercad
+  StaticJsonDocument<TAMANHO> json; 
+  int distancia1 = sensor_morcego(TRIG1,ECHO1); 
+  int distancia2 = sensor_morcego(TRIG2,ECHO2);
+ 
+  sensorVaga(distancia1, distancia2);    
+  delay(100); 
+}
+
+void sensorVaga(int distancia1, int distancia2)
+{
+  StaticJsonDocument<TAMANHO> json;
+  if (distancia1 < 200 && distancia2 < 200)
+  {     
+    //digitalWrite(1, LOW);
+    //digitalWrite(0, LOW);
+    
+    digitalWrite(8, LOW);     
+    digitalWrite(13, HIGH);
+    
+    lcd.setCursor(0,0);
+  	lcd.print("Vagas Livres   0");
+  	lcd.setCursor(0,1);
+  	lcd.print("Vagas Ocupadas 2");
+    
+    Serial.println("{\"V1\":1,\"V2\":1}");
+  }
+  else if (distancia1 > 200 && distancia2 < 200)
+  {
+    //digitalWrite(1, LOW);
+    //digitalWrite(0, LOW);
+    
+    digitalWrite(8, LOW);     
+    digitalWrite(13, HIGH);
+    
+   	lcd.setCursor(0,0);
+  	lcd.print("Vagas Livres   1");
+  	lcd.setCursor(0,1);
+  	lcd.print("Vagas Ocupadas 1");  
+    
+    Serial.println("{\"V1\":0,\"V2\":1}");
+  }
+  else if (distancia1 < 200 && distancia2 > 200)
+  {
+    //digitalWrite(1, LOW);
+    //digitalWrite(0, LOW);
+    
+    digitalWrite(8, HIGH);     
+    digitalWrite(13, LOW);
+  	
+    lcd.setCursor(0,0);
+  	lcd.print("Vagas Livres   1");
+  	lcd.setCursor(0,1);
+  	lcd.print("Vagas Ocupadas 1");  
+    
+    Serial.println("{\"V1\":1,\"V2\":0}");   
+  }
+  else {
+  
+    //digitalWrite(1, LOW);
+    //digitalWrite(0, LOW);
+    
+    digitalWrite(8, HIGH);     
+    digitalWrite(13, LOW);
+    
+  	lcd.setCursor(0,0);
+  	lcd.print("Vagas Livres   2");
+  	lcd.setCursor(0,1);
+  	lcd.print("Vagas Ocupadas 0"); 
+    
+    Serial.println("{\"V1\":0,\"V2\":0}");   
+  }
+
+}
+
+int sensor_morcego(int pinotrig, int pinoecho){
+  digitalWrite(pinotrig,LOW);
+  delayMicroseconds(2);
+  digitalWrite(pinotrig,HIGH);
+  delayMicroseconds(10);
+  digitalWrite(pinotrig,LOW);
+
+  return pulseIn(pinoecho,HIGH)/58;
+}
